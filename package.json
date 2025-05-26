@@ -1,0 +1,19 @@
+{
+  "name": "devtinder",
+  "version": "1.0.0",
+  "description": "Tinder for devs",
+  "license": "ISC",
+  "author": "Atul Sagotra",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "prettier:fix": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
+    "prettier:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
+    "dev": "nodemon src/app.js", 
+    "build": "npm run lint && npm run prettier:check && <your-existing-build-command>"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
