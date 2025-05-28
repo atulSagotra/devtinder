@@ -20,6 +20,22 @@ app.get("/user", userAuth, (req, res) => {
   res.send("User Data Send");
 });
 
+app.get("/getUserData", (req, res) => {
+  try {
+		throw new Error("eerere")
+    res.send("User Data Send");
+  } catch (err) {
+    res.status(500).send("Some error contact support team");
+  }
+  throw new Error("unhandled Error");
+});
+
+app.use("/", (err, req, res, next) => {
+  if (err) {
+    res.status(500).send("Something went wrong");
+  }
+});
+
 app.listen(7777, () => {
   console.log("Server is successfully listening on port 7777...");
 });
