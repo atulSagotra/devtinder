@@ -1,41 +1,34 @@
 const express = require("express");
 const { adminAuth, userAuth } = require("./middlewares/auth");
+const connectDB = require("./config/databse");
+const User = require("./models/user");
 
 const app = express();
 
-// Handle Auth Middleware for admin requests
-app.use("/admin", adminAuth);
-
-app.get("/admin/getAllData", (req, res) => {
-  // Logic of fetching all data
-  res.send("All data sent");
-});
-
-app.get("/admin/deleteUser", (req, res) => {
-  // Logic of fetching all data
-  res.send("Deleted a user");
-});
-
-app.get("/user", userAuth, (req, res) => {
-  res.send("User Data Send");
-});
-
-app.get("/getUserData", (req, res) => {
+app.post("/signup", async (req, res) => {
+  // creating a new instance of the user model
+  const userObj = {
+    firstName: "Virat",
+    lastName: "Kohli",
+    emailId: "Vira@gmail.com",
+    password: "priya123",
+  };
+  const user = new User(userObj);
   try {
-		throw new Error("eerere")
-    res.send("User Data Send");
+    await user.save();
+    res.send("User added successfully ");
   } catch (err) {
-    res.status(500).send("Some error contact support team");
-  }
-  throw new Error("unhandled Error");
-});
-
-app.use("/", (err, req, res, next) => {
-  if (err) {
-    res.status(500).send("Something went wrong");
+    res.status(400).send("Error saving the user: ", err.message);
   }
 });
 
-app.listen(7777, () => {
-  console.log("Server is successfully listening on port 7777...");
-});
+connectDB()
+  .then(() => {
+    console.log("Database connection established...");
+    app.listen(7777, () => {
+      console.log("Server is successfully listening on port 7777...");
+    });
+  })
+  .catch((err) => {
+    console.log("Database cannot be connected");
+  });

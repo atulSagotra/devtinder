@@ -10,10 +10,11 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "prettier:fix": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "prettier:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
-    "dev": "nodemon src/app.js", 
+    "dev": "nodemon src/app.js",
     "build": "npm run lint && npm run prettier:check && <your-existing-build-command>"
   },
   "dependencies": {
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "mongoose": "^8.15.1"
   }
 }
