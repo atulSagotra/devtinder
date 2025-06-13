@@ -2,15 +2,32 @@ const express = require("express");
 const { adminAuth, userAuth } = require("./middlewares/auth");
 const connectDB = require("./config/databse");
 const User = require("./models/user");
+const { validateSignUpData } = require("./utils/validation");
+const bcrypt = require("bcrypt");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.post("/signup", async (req, res) => {
-  // creating a new instance of the user model
-  const user = new User(req.body);
   try {
+    // validation of the data
+    validateSignUpData(req);
+
+    const { firstName, lastName, emailId, password } = req.body;
+    //Encrypt the password
+    const passwordHash = await bcrypt.hash(password, 10);
+    console.log(passwordHash);
+    // creating a new instance of the user model
+    const user = new User({
+      firstName,
+      lastName,
+      emailId,
+      password: passwordHash,
+    });
     await user.save();
     res.send("User added successfully ");
   } catch (err) {
@@ -18,52 +35,41 @@ app.post("/signup", async (req, res) => {
   }
 });
 
-app.get("/user", async (req, res) => {
-  const userEmail = req.body.emailId;
-
+app.post("/login", async (req, res) => {
   try {
-    const users = await User.find({ emailId: userEmail });
-    if (users.length === 0) {
-      res.send(404).send("User not found");
+    const { emailId, password } = req.body;
+
+    const user = await User.findOne({ emailId: emailId });
+
+    if (!user) {
+      throw new Error("Invalid Email Id");
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (isPasswordValid) {
+      // Create a JWT token
+      const token = await jwt.sign({ _id: user._id }, "DEV@Tinder$790", {
+        expiresIn: "1d",
+      });
+      console.log(token);
+      res.cookie("token", token);
+      res.send("Login Successfully");
     } else {
-      res.send(users);
+      throw new Error("Invalid Password");
     }
   } catch (err) {
-    res.status(400).send("Something went wrong");
+    debugger;
+    res.status(400).send("Error: " + err.message);
   }
 });
 
-app.get("/feed", async (req, res) => {
+app.get("/profile", userAuth, async (req, res) => {
   try {
-    const users = await User.find({});
-    res.send(users);
+    const user = req.user;
+    res.send(user);
   } catch (err) {
-    res.status(400).send("Something went wrong");
-  }
-});
-// Delete the user from DB
-app.delete("/user", async (req, res) => {
-  const userId = req.body.userId;
-  try {
-    const user = await User.findByIdAndDelete({ _id: userId });
-    res.send("User deleted successfully!!!");
-  } catch (err) {
-    res.status(400).send("User not found");
-  }
-});
-
-// Update the user in the DB
-app.patch("/user", async (req, res) => {
-  const userId = req.body.userId;
-  const data = req.body;
-  try {
-    const user = await User.findByIdAndUpdate({ _id: userId }, data, {
-      returnDocument: "after",
-      runValidators: true,
-    });
-    res.send("User Updated successfully");
-  } catch (err) {
-    res.status(400).send("Update Failed " + err.message);
+    res.status(400).send("ERROR:" + err.message);
   }
 });
 
@@ -75,5 +81,5 @@ connectDB()
     });
   })
   .catch((err) => {
-    console.log("Database cannot be connected");
+    console.log("Database cannot be connected" + err);
   });
